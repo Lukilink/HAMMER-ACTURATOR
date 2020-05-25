@@ -26,16 +26,14 @@ Kalman kalmanX; // Create the Kalman instances
 Kalman kalmanY;
 
 /* IMU Data */
-double accX, accY, accZ;
-double gyroX, gyroY, gyroZ;
-int16_t tempRaw;
+float accX, accY, accZ;
+float gyroX, gyroY, gyroZ;
 
-double gyroXangle, gyroYangle; // Angle calculate using the gyro only
-double compAngleX, compAngleY; // Calculated angle using a complementary filter
-double kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
+float gyroXangle, gyroYangle; // Angle calculate using the gyro only
+float compAngleX, compAngleY; // Calculated angle using a complementary filter
+float kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 
 uint32_t timer;
-uint8_t i2cData[14]; // Buffer for I2C data
 
 // TODO: Make calibration routine
 
@@ -43,13 +41,8 @@ void setup() {
   Serial.begin(115200);
   IMU.begin();
 
- float ax, ay, az;
-
   if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(ax, ay, az);
-  accX = ax;
-  accY = ay;
-  accZ = az;
+    IMU.readAcceleration(accX, accY, accZ);
     }
 
   // Source: http://www.freescale.com/files/sensors/doc/app_note/AN3461.pdf eq. 25 and eq. 26
@@ -74,22 +67,14 @@ void setup() {
 }
 
 void loop() {
-
-  float ax, ay, az;
+ 
   if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(ax, ay, az);
+    IMU.readAcceleration(accX, accY, accZ);
   }
-  float gx, gy, gz;
+
   if (IMU.gyroscopeAvailable()) {
-  IMU.readGyroscope(gx, gy, gz);
+    IMU.readGyroscope(gyroX, gyroY, gyroZ);
   }
-  accX = ax;
-  accY = ay;
-  accZ = az;
-  tempRaw = 500;
-  gyroX = gx;
-  gyroY = gy;
-  gyroZ = gz;
 
   double dt = (double)(micros() - timer) / 1000000; // Calculate delta time
   timer = micros();
@@ -175,12 +160,6 @@ void loop() {
   // Serial.print(compAngleY); Serial.print("\t");
  Serial.print(kalAngleY); Serial.print("\t");
 
-#if 0 // Set to 1 to print the temperature
-  Serial.print("\t");
-
-  double temperature = (double)tempRaw / 340.0 + 36.53;
-  Serial.print(temperature); Serial.print("\t");
-#endif
 
   Serial.print("\r\n");
   delay(1);
