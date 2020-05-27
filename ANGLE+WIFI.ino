@@ -24,9 +24,10 @@ float steering_angle;
 
 /* WIFI CONNECTION */
 int status = WL_IDLE_STATUS;
-char ssid[] = "Lukephone";
-char pass[] = "123456789";
-unsigned int Port1 = 8000;
+char ssid[] = "FRITZ!Box 7490";
+char pass[] = "90346904906149662937";
+unsigned int localPort = 2390; 
+char packetBuffer[256]; //buffer to hold incoming packet
 long previousMillis = 0;
 WiFiUDP Udp;
 
@@ -45,7 +46,6 @@ void setup() {
   }
   Serial.print("connected to: ");
   Serial.println(ssid);
-  Udp.begin(Port1);
 
   
   
@@ -71,6 +71,8 @@ void setup() {
   compAngleX = roll;
   compAngleY = pitch;
   timer = micros();
+
+  Udp.begin(localPort);
 }
 
 
@@ -79,19 +81,35 @@ void loop() {
 steering_angle_calculation();
 steering_angle = compAngleY;
 
+
 // send a Message evry 100ms
-      long currentMillis = millis();        
-      if (currentMillis - previousMillis >= 1) {
-        IPAddress IP(172, 20, 10, 1);
-        Udp.beginPacket(IP, 8000);
+long currentMillis = millis();        
+      if (currentMillis - previousMillis >= 1000) {
+
+        
+        IPAddress IP(192, 168, 178, 46);
+        
+        Udp.beginPacket(IP, 60477);
         Udp.print(steering_angle);
         Udp.endPacket();
-        Serial.print("send message:  ");
-        Serial.print(steering_angle);
-        Serial.println("");
+      //  Serial.println("send");
+    
         previousMillis = currentMillis;
       }
 
+// receive a Message
+  // if there's data available, read a packet
+int packetSize = Udp.parsePacket();
+  if (packetSize) {
+  int len = Udp.read(packetBuffer, 255);
+  if (len > 0) {
+      packetBuffer[len] = 0;
+    }
+  Serial.println(packetBuffer);
+  }
+
+
+delay(1);
 
 }
 
