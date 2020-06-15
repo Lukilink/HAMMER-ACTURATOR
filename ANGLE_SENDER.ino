@@ -21,31 +21,36 @@ float compAngleX, compAngleY; // Calculated angle using a complementary filter
 float kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 uint32_t timer;
 float steering_angle;
+String message;
 
 /* WIFI CONNECTION */
 int status = WL_IDLE_STATUS;
-char ssid[] = "FRITZ!Box 7490";
+char ssid[] = "ANGLESENSOR";
 char pass[] = "90346904906149662937";
-unsigned int localPort = 2390; 
+unsigned int localPort = 2390;  // to listen on 
 char packetBuffer[256]; //buffer to hold incoming packet
 long previousMillis = 0;
+WiFiServer server(80);
 WiFiUDP Udp;
 
 
 void setup() {
   Serial.begin(9600);
-  
-/* WIFI CONNECTION */  
-  // attempt to connect to Wifi network:
-  while (status != WL_CONNECTED) {
-    Serial.print("connecting to: ");
-    Serial.println(ssid);
-    status = WiFi.begin(ssid, pass);
-    // wait 1 seconds for connection:
-    delay(1000);
+  WiFi.config(IPAddress(192, 168, 4, 1));  
+// Create open network. Change this line if you want to create an WEP network:
+  status = WiFi.beginAP(ssid, pass);
+  if (status != WL_AP_LISTENING) {
+    Serial.println("Creating access point failed");
+    // don't continue
+    while (true);
   }
-  Serial.print("connected to: ");
-  Serial.println(ssid);
+  
+
+// wait 10 seconds for connection:
+  delay(10000);
+
+  // you're connected now, so print out the status
+  printWiFiStatus();
 
   
   
@@ -72,6 +77,7 @@ void setup() {
   compAngleY = pitch;
   timer = micros();
 
+  printWiFiStatus();
   Udp.begin(localPort);
 }
 
@@ -82,34 +88,30 @@ steering_angle_calculation();
 steering_angle = compAngleY;
 
 
-// send a Message evry 100ms
+// send a Message evry 1ms
 long currentMillis = millis();        
-      if (currentMillis - previousMillis >= 10) {
-
-        
-        IPAddress IP(192, 168, 178, 163);
-        
+      if (currentMillis - previousMillis >= 1) {        
+        IPAddress IP(192, 168, 4, 2);      
         Udp.beginPacket(IP, 2390);
         Udp.print(steering_angle);
         Udp.endPacket();
-        Serial.println(steering_angle);
-    
         previousMillis = currentMillis;
       }
 
+Serial.println (steering_angle);
+/*
+ * 
 // receive a Message
-  // if there's data available, read a packet
 int packetSize = Udp.parsePacket();
   if (packetSize) {
   int len = Udp.read(packetBuffer, 255);
   if (len > 0) {
       packetBuffer[len] = 0;
     }
-  Serial.println(packetBuffer);
+    message = packetBuffer;
   }
 
-
-delay(1);
+*/
 
 }
 
@@ -186,4 +188,17 @@ void steering_angle_calculation() {
 return kalAngleY;
 return compAngleY;
 delay(1);
+}
+
+void printWiFiStatus() {
+  // print the SSID of the network you're attached to:
+  Serial.print("SSID: ");
+  Serial.println(WiFi.SSID());
+
+  // print your WiFi shield's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+
+
 }
