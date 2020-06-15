@@ -1,4 +1,4 @@
-/* STEERING_ANGLE_CALCULATION */
+/* STEERING_ANGLE_CALCULATION SENDER 313 */
 #include <Arduino_LSM6DS3.h>
 #include <Kalman.h> // Source: https://github.com/TKJElectronics/KalmanFilter
 #define RESTRICT_PITCH // Comment out to restrict roll to ±90deg instead - please read: http://www.freescale.com/files/sensors/doc/app_note/AN3461.pdf
@@ -84,15 +84,15 @@ steering_angle = compAngleY;
 
 // send a Message evry 100ms
 long currentMillis = millis();        
-      if (currentMillis - previousMillis >= 1000) {
+      if (currentMillis - previousMillis >= 10) {
 
         
-        IPAddress IP(192, 168, 178, 46);
+        IPAddress IP(192, 168, 178, 163);
         
-        Udp.beginPacket(IP, 60477);
+        Udp.beginPacket(IP, 2390);
         Udp.print(steering_angle);
         Udp.endPacket();
-      //  Serial.println("send");
+        Serial.println(steering_angle);
     
         previousMillis = currentMillis;
       }
