@@ -6,7 +6,6 @@
  */
 
 
-unsigned long Time;
 unsigned long value = 10;
 unsigned long value_with_delay;
 unsigned long value_with_added_delay;
